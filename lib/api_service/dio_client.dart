@@ -19,16 +19,15 @@ class DioClient {
         .add(ApiInterceptors());
   }
 
-  Future<Either<FailureResponse, Map<String, dynamic>>?> request(
-    String url,
-    Map<String, dynamic> params,
+  Future<Either<FailureResponse, Map<String, dynamic>>?> request({ required String url,
+    Map<String, dynamic>? params}
   ) async {
     Response response;
     try {
       if (await AppMethods.checkConnectivity()) {
           response = await _dio.get(
             url,
-            queryParameters: params.isEmpty ? null : params,
+            queryParameters: params
           );
         return right({"response": response.data});
       } else {
