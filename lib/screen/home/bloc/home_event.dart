@@ -7,7 +7,8 @@ sealed class HomeEvent extends Equatable {
 
 class OnTabSwitch extends HomeEvent {
   final Tabs tabs;
-  const OnTabSwitch({required this.tabs});
+  final bool isNew;
+  const OnTabSwitch({required this.tabs,required this.isNew});
 
   @override
   List<Object?> get props => [];
@@ -28,6 +29,28 @@ class OnSearchMovie extends HomeEvent {
 
 class FetchGenre extends HomeEvent {
   const FetchGenre();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class GenreTap extends HomeEvent {
+  final int index;
+  const GenreTap({required this.index});
+
+  @override
+  List<Object?> get props => [];
+}
+
+class ApplyFilter extends HomeEvent {
+  const ApplyFilter();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class ClearFilter extends HomeEvent {
+  const ClearFilter();
 
   @override
   List<Object?> get props => [];

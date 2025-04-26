@@ -23,7 +23,7 @@ class AppRouter {
           builder: (context) {
             return BlocProvider(
               create: (create) =>
-              getIt<HomeBloc>()..add(OnTabSwitch(tabs: Tabs.upcoming))..add(FetchGenre()),
+              getIt<HomeBloc>()..add(OnTabSwitch(tabs: Tabs.popular, isNew: true))..add(FetchGenre()),
               child: const HomeScreen(),
             );
           },

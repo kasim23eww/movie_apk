@@ -6,6 +6,7 @@ final class HomeState extends Equatable {
   final Tabs tab;
   final LoadStatus loadStatus;
   final List<GenreModel> genreList;
+  final List<MovieModel> primaryList;
   final TextEditingController? searchController;
   final ScrollController? scrollController;
   final int? page;
@@ -13,8 +14,9 @@ final class HomeState extends Equatable {
 
   const HomeState({
     this.moviesList = const [],
-    this.isGrid = false,
-    this.tab = Tabs.upcoming,
+    this.primaryList = const [],
+    this.isGrid = true,
+    this.tab = Tabs.popular,
     this.loadStatus = LoadStatus.initial,
     this.genreList = const [],
     this.searchController,
@@ -25,6 +27,7 @@ final class HomeState extends Equatable {
 
   HomeState copyWith({
     List<MovieModel>? moviesList,
+    List<MovieModel>? primaryList,
     bool? isGrid,
     Tabs? tab,
     LoadStatus? loadStatus,
@@ -36,6 +39,7 @@ final class HomeState extends Equatable {
   }) {
     return HomeState(
       moviesList: moviesList ?? this.moviesList,
+      primaryList: primaryList ?? this.primaryList,
       isGrid: isGrid ?? this.isGrid,
       tab: tab ?? this.tab,
       loadStatus: loadStatus ?? this.loadStatus,
@@ -58,5 +62,6 @@ final class HomeState extends Equatable {
     scrollController,
     page,
     totalPage,
+    primaryList,
   ];
 }
