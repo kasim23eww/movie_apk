@@ -11,6 +11,10 @@ abstract class GenreModel with _$GenreModel {
     required int id,
     @JsonKey(name: "name")
     required String name,
+
+    @Default(false)
+    @JsonKey(includeFromJson: false,includeToJson: false)
+    bool? isSelected
   }) = _GenreModel;
 
   factory GenreModel.fromJson(Map<String, dynamic> json) => _$GenreModelFromJson(json);

@@ -1,7 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:movie_app/screen/detail/details_screen.dart';
-
+import 'package:movie_app/screen/home/bloc/home_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:movie_app/utils/enum/tabs.dart';
+import '../di/injector_container.dart';
 import '../screen/home/home_screen.dart';
 
 
@@ -18,7 +21,11 @@ class AppRouter {
       case Routes.home:
         return MaterialPageRoute(
           builder: (context) {
-            return const HomeScreen();
+            return BlocProvider(
+              create: (create) =>
+              getIt<HomeBloc>()..add(OnTabSwitch(tabs: Tabs.upcoming))..add(FetchGenre()),
+              child: const HomeScreen(),
+            );
           },
         );
 
