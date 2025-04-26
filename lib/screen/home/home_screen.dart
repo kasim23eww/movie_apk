@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:movie_app/screen/home/model/genre/genre_model.dart';
+import 'package:movie_app/utils/app_methods.dart';
 import 'package:movie_app/utils/constants.dart';
 import 'package:movie_app/utils/enum/tabs.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -24,7 +25,7 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         bottom: false,
         minimum: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-          child: BlocBuilder<HomeBloc, HomeState>(
+          child: BlocConsumer<HomeBloc, HomeState>(
             builder: (context, state) {
               return Skeletonizer(
                 enabled: state.loadStatus == LoadStatus.loading ,
@@ -79,9 +80,9 @@ class HomeScreen extends StatelessWidget {
                         Expanded(
                           child: AppSearchField(
                             controller: state.searchController!,
-                            hintText: 'Search movies...',
+                            hintText: 'Search movies bt title',
                             onChanged: (value) {
-                              print('Searching for: $value');
+                              context.read<HomeBloc>().add(OnSearchMovie(movie: value));
                             },
                           ),
                         ),
@@ -113,31 +114,46 @@ class HomeScreen extends StatelessWidget {
                 ),
               );
             },
+            listener: (BuildContext context, HomeState state) {
+              if(state.failureResponse!=null){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.failureResponse!.message),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                context.read<HomeBloc>().add(Reset());
+              }
+            },
           )
       ),
       floatingActionButton: BlocBuilder<HomeBloc, HomeState>(
   builder: (context, state) {
-    return FloatingActionButton(
-          onPressed: (){
-            showGenreBottomSheet(
-              context: context,
-              genres: state.genreList,
-              selectedGenres: state.genreList.where((e)=>e.isSelected ?? false).toList(),
-              onGenreTap: (selected) {
-                context.read<HomeBloc>().add(GenreTap(index: state.genreList.indexWhere((t)=>t.id == selected.id)));
-              },
-              onApplyFilter: () {
-                context.read<HomeBloc>().add(ApplyFilter());
-              },
-              onClearFilter: () {
-                context.read<HomeBloc>().add(ClearFilter());
-              },
-            );
-          },
-           backgroundColor: Colors.amber,
-        shape: const CircleBorder(),
-              child: Icon(Icons.filter_alt,color: Colors.black,),
-      );
+    return Visibility(
+      visible: state.genreList.isNotEmpty,
+      child: FloatingActionButton(
+            onPressed: (){
+              showGenreBottomSheet(
+                context: context,
+                genres: state.genreList,
+                selectedGenres: state.genreList.where((e)=>e.isSelected ?? false).toList(),
+                onGenreTap: (selected) {
+                  context.read<HomeBloc>().add(GenreTap(index: state.genreList.indexWhere((t)=>t.id == selected.id)));
+                },
+                onApplyFilter: () {
+                  context.read<HomeBloc>().add(ApplyFilter());
+                },
+                onClearFilter: () {
+                  context.read<HomeBloc>().add(ClearFilter());
+                },
+              );
+            },
+             backgroundColor: Colors.amber,
+          shape: const CircleBorder(),
+                child: Icon(Icons.filter_alt,color: Colors.black,),
+        ),
+    );
   },
 ),
     );
@@ -145,83 +161,102 @@ class HomeScreen extends StatelessWidget {
 
   Widget gridView(HomeState state) {
     return GridView.builder(
-                      itemCount: state.moviesList.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // 2 columns
-                        crossAxisSpacing: 15,
-                        mainAxisSpacing: 15,
-                        childAspectRatio: 2 / 3, // for poster-like aspect
-                      ),
-                      itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            AppCachedImage(
-                              imageUrl: getTmdbImageUrl(state.moviesList[index].posterPath),
-                              borderRadius: BorderRadius.circular(12),
+      controller: state.scrollController,
+      padding: const EdgeInsets.only(bottom: 10),
+      itemCount: state.loadStatus == LoadStatus.loadingMore
+          ? state.moviesList.length + 1
+          : state.moviesList.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 15,
+        mainAxisSpacing: 15,
+        childAspectRatio: 2 / 3,
+      ),
+      itemBuilder: (context, index) {
+        if (state.loadStatus == LoadStatus.loadingMore &&
+            index == state.moviesList.length) {
+          // FULL width loader
+          return Center(
+            child: SizedBox(
+              width: double.infinity,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.amber,
+                ),
+              ),
+            ),
+          );
+        } else {
+          return Stack(
+            children: [
+              AppCachedImage(
+                imageUrl: AppMethods.getImageUrl(state.moviesList[index].posterPath),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.black.withOpacity(0.5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            state.moviesList[index].title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
-
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(12),
-                                  bottomRight: Radius.circular(12),
-                                ),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    color: Colors.black.withOpacity(0.5),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          state.moviesList[index].title,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                DateFormat('MMMM d, y').format(state.moviesList[index].releaseDate),
-                                                style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                              ),
-                                            ),
-                                            Row(
-                                              spacing: 2,
-                                              children: [
-                                                const Icon(Icons.star, color: Colors.amber, size: 14),
-                                                Text(
-                                                  state.moviesList[index].voteCount.toString(),
-                                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  DateFormat('MMMM d, y').format(state.moviesList[index].releaseDate),
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                                 ),
                               ),
-                            ),
-
-                          ],
-                        );
-                      },
-                    );
+                              Row(
+                                children: [
+                                  const Icon(Icons.star, color: Colors.amber, size: 14),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    state.moviesList[index].voteCount.toString(),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+      },
+    );
   }
+
+
 
   Widget listView(HomeState state) {
     return ListView.separated(
@@ -250,7 +285,7 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppCachedImage(
-                  imageUrl: getTmdbImageUrl(state.moviesList[index].posterPath),
+                  imageUrl: AppMethods.getImageUrl(state.moviesList[index].posterPath),
                   height: 140,
                   width: 100,
                   fit: BoxFit.cover,
@@ -305,9 +340,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-String getTmdbImageUrl(String path, {String size = "w500"}) {
-  return "https://image.tmdb.org/t/p/$size$path";
-}
+
 
 void showGenreBottomSheet({
   required BuildContext context,

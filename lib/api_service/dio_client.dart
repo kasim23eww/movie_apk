@@ -32,7 +32,7 @@ class DioClient {
         return right({"response": response.data});
       } else {
         return left(
-          FailureResponse(false, "No Internet"),
+          FailureResponse(true, "No Internet"),
         );
       }
     } on DioException catch (dioError) {

@@ -4,9 +4,9 @@ import 'package:movie_app/screen/home/model/movie/movie_model.dart';
 
 abstract class LocalRepo {
 
-  Future<List<MovieModel>> getMovies();
+  Future<List<MovieModel>> getMovies({required String type});
 
-  Future<void> setMovies({ required List<MovieModel> list});
+  Future<void> setMovies({ required List<MovieModel> list , required String type});
 
   Future<List<GenreModel>> getGenre();
 

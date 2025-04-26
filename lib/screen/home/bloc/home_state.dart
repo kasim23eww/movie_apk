@@ -11,6 +11,7 @@ final class HomeState extends Equatable {
   final ScrollController? scrollController;
   final int? page;
   final int? totalPage;
+  final FailureResponse? failureResponse;
 
   const HomeState({
     this.moviesList = const [],
@@ -21,6 +22,7 @@ final class HomeState extends Equatable {
     this.genreList = const [],
     this.searchController,
     this.scrollController,
+    this.failureResponse,
     this.page = 1,
     this.totalPage = 1,
   });
@@ -36,6 +38,7 @@ final class HomeState extends Equatable {
     ScrollController? scrollController,
     int? page,
     int? totalPage,
+    FailureResponse? failureResponse
   }) {
     return HomeState(
       moviesList: moviesList ?? this.moviesList,
@@ -48,6 +51,7 @@ final class HomeState extends Equatable {
       scrollController: scrollController ?? this.scrollController,
       page: page ?? this.page,
       totalPage: totalPage ?? this.totalPage,
+      failureResponse: failureResponse ?? this.failureResponse,
     );
   }
 
@@ -63,5 +67,6 @@ final class HomeState extends Equatable {
     page,
     totalPage,
     primaryList,
+    failureResponse,
   ];
 }

@@ -6,11 +6,11 @@ class AppSearchField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
 
   const AppSearchField({
-    Key? key,
+    super.key,
     required this.controller,
     this.hintText = 'Search...',
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +33,9 @@ class AppSearchField extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             borderSide: const BorderSide(color: Colors.blueAccent),
           ),
+          hintStyle: TextStyle(
+            color: Colors.grey,fontWeight: FontWeight.normal
+          )
         ),
         style: const TextStyle(fontSize: 16),
       ),

@@ -55,3 +55,10 @@ class ClearFilter extends HomeEvent {
   @override
   List<Object?> get props => [];
 }
+
+class Reset extends HomeEvent {
+  const Reset();
+
+  @override
+  List<Object?> get props => [];
+}

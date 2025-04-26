@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class AppCachedImage extends StatelessWidget {
   final String imageUrl;
@@ -11,7 +12,7 @@ class AppCachedImage extends StatelessWidget {
   final Widget? errorWidget;
 
   const AppCachedImage({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.width,
     this.height,
@@ -19,7 +20,7 @@ class AppCachedImage extends StatelessWidget {
     this.borderRadius,
     this.placeholder,
     this.errorWidget,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,10 @@ class AppCachedImage extends StatelessWidget {
       height: height,
       fit: fit,
       placeholder: (_, __) => placeholder ??
-          Center(child: CircularProgressIndicator()),
+          Bone(
+            width: width,
+            height: height,
+          ),
       errorWidget: (_, __, ___) => errorWidget ??
           Icon(Icons.broken_image, size: width ?? 40),
     );

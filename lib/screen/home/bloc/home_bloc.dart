@@ -52,7 +52,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(genreList: lists));
     });
 
-    on<OnTabSwitch>((event, emit) async {
+     on<OnTabSwitch>((event, emit) async {
 
 
       if(event.isNew){
@@ -78,9 +78,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
 
       if(res!=null){
-        res.fold(
-                (l){
-                  emit(state.copyWith(loadStatus: LoadStatus.failure));
+       await res.fold(
+                (l) async {
+                  if(l.status){
+                    List<MovieModel> movies = await localRepo.getMovies(type: event.tabs.name);
+                    if(movies.isNotEmpty){
+                      emit(state.copyWith(
+                        moviesList: movies,
+                        primaryList: movies,
+                        loadStatus: LoadStatus.success,)
+                      );
+                    }else{
+                      emit(state.copyWith(
+                        loadStatus: LoadStatus.failure,
+                        moviesList: movies
+                      ));
+                    }
+
+                  }else{
+                    emit(state.copyWith(failureResponse: l, loadStatus: LoadStatus.success,
+                        moviesList: []));
+                  }
+
                 }, (r){
 
                   List data = r['response']['results'];
@@ -96,6 +115,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                     movies = list;
                   }
 
+                  localRepo.setMovies(list: movies, type: event.tabs.name);
+
                   emit(state.copyWith(
                       moviesList: movies,
                       primaryList: movies,
@@ -106,6 +127,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
                   if(state.genreList.any((e)=>e.isSelected!)){
                     add(ApplyFilter());
+                  }else if(state.searchController!.text.trim().isNotEmpty){
+                    add(OnSearchMovie(movie:state.searchController!.text));
                   }
 
         }
@@ -121,10 +144,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       Either<FailureResponse, Map<String, dynamic>>? res =  await remoteRepo.getGenre();
 
       if(res !=null){
-        res.fold((l){
+       await res.fold((l) async {
+         if(l.status){
+           List<GenreModel> movies = await localRepo.getGenre();
+             emit(state.copyWith(genreList: movies,));
 
+         } else{
+           emit(state.copyWith(failureResponse: l));
+         }
         }, (r){
           List<GenreModel> genres = List.from(r['response']['genres'].map((e)=>GenreModel.fromJson(e)).toList());
+
+          localRepo.setGenre(list: genres);
           emit(state.copyWith(genreList: genres));
         }
         );
@@ -134,38 +165,50 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     });
 
+    on<ClearFilter>((event, emit) {
+      final filteredMovies = state.primaryList.toList();
+
+      var genre = state.genreList.map((e){
+        e = e.copyWith(isSelected: false);
+        return e;
+      }).toList();
+
+      emit(state.copyWith(moviesList: filteredMovies,genreList: genre));
+    });
+
+
     on<ApplyFilter>((event, emit) {
-      final filteredMovies = state.primaryList.where((movie) {
-        return movie.genreIds.any((id) =>
-            state.genreList.where((e)=>e.isSelected!).map((g) => g.id).contains(id)
-        );
-      }).toList();
-
-      emit(state.copyWith(moviesList: filteredMovies));
+      _applyFiltersAndSearch(emit);
     });
 
-    on<ClearFilter>((event, emit) {
-      final filteredMovies = state.primaryList.toList();
-
-      var genre = state.genreList.map((e){
-        e = e.copyWith(isSelected: false);
-        return e;
-      }).toList();
-
-      emit(state.copyWith(moviesList: filteredMovies,genreList: genre));
+    on<OnSearchMovie>((event, emit) {
+      _applyFiltersAndSearch(emit, searchQuery: event.movie);
     });
 
-
-    on<ClearFilter>((event, emit) {
-      final filteredMovies = state.primaryList.toList();
-
-      var genre = state.genreList.map((e){
-        e = e.copyWith(isSelected: false);
-        return e;
-      }).toList();
-
-      emit(state.copyWith(moviesList: filteredMovies,genreList: genre));
+    on<Reset>((event, emit) {
+      emit(state.copyWith(failureResponse: null));
     });
+  }
 
+  void _applyFiltersAndSearch(Emitter<HomeState> emit, {String? searchQuery}) {
+    List<MovieModel> filteredMovies = state.primaryList;
+
+
+    final selectedGenres = state.genreList.where((e) => e.isSelected!).map((e) => e.id).toList();
+    if (selectedGenres.isNotEmpty) {
+      filteredMovies = filteredMovies.where((movie) {
+        return movie.genreIds.any((id) => selectedGenres.contains(id));
+      }).toList();
+    }
+
+
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      final query = searchQuery.trim().toLowerCase();
+      filteredMovies = filteredMovies.where((movie) {
+        return movie.title.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    emit(state.copyWith(moviesList: filteredMovies));
   }
 }
