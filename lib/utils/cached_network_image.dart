@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class AppCachedImage extends StatelessWidget {
@@ -29,20 +29,17 @@ class AppCachedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      placeholder: (_, __) => placeholder ??
-          Bone(
-            width: width,
-            height: height,
-          ),
-      errorWidget: (_, __, ___) => errorWidget ??
-          Icon(Icons.broken_image, size: width ?? 40),
+      placeholder: (_, __) => placeholder ?? Bone(width: width, height: height),
+      errorWidget:
+          (_, __, ___) =>
+              errorWidget ?? Icon(Icons.broken_image, size:  100,color: Colors.white,),
     );
 
     return borderRadius != null
         ? ClipRRect(
-      borderRadius: borderRadius ?? BorderRadius.circular(10),
-      child: image,
-    )
+          borderRadius: borderRadius ?? BorderRadius.circular(10),
+          child: image,
+        )
         : image;
   }
 }

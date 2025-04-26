@@ -7,40 +7,34 @@ import 'package:movie_app/utils/constants.dart';
 import '../../api_service/dio_client.dart';
 
 @LazySingleton(as: RemoteRepo)
-
-class RemoteRepoImpl extends RemoteRepo{
+class RemoteRepoImpl extends RemoteRepo {
   DioClient dioClient;
+
   RemoteRepoImpl({required this.dioClient});
 
-
   @override
-  Future<Either<FailureResponse, Map<String, dynamic>>?> discoverWithGenres({required param}) async {
-   return await dioClient.request(url: Constants.discover, params:  param);
+  Future<Either<FailureResponse, Map<String, dynamic>>?> getGenre() async {
+    return await dioClient.request(url: Constants.genre);
   }
 
   @override
-  Future<Either<FailureResponse, Map<String, dynamic>>?> getGenre() async{
-    return await dioClient.request(url :Constants.genre);
+  Future<Either<FailureResponse, Map<String, dynamic>>?> getPopularMovies({
+    required param,
+  }) async {
+    return await dioClient.request(url: Constants.popular, params: param);
   }
 
   @override
-  Future<Either<FailureResponse, Map<String, dynamic>>?> getPopularMovies({required param}) async{
-    return await dioClient.request(url: Constants.popular, params:  param);
+  Future<Either<FailureResponse, Map<String, dynamic>>?> getTopRatedMovies({
+    required param,
+  }) async {
+    return await dioClient.request(url: Constants.topRated, params: param);
   }
 
   @override
-  Future<Either<FailureResponse, Map<String, dynamic>>?> getTopRatedMovies({required param}) async{
-    return await dioClient.request(url: Constants.topRated, params:  param);
+  Future<Either<FailureResponse, Map<String, dynamic>>?> getTopUpcomingMovies({
+    required param,
+  }) async {
+    return await dioClient.request(url: Constants.upcoming, params: param);
   }
-
-  @override
-  Future<Either<FailureResponse, Map<String, dynamic>>?> getTopUpcomingMovies({required param}) async{
-    return await dioClient.request(url: Constants.upcoming, params:  param);
-  }
-
-  @override
-  Future<Either<FailureResponse, Map<String, dynamic>>?> searchMovie({required param}) async{
-    return await dioClient.request(url: Constants.searchMovie, params:  param);
-  }
-
 }

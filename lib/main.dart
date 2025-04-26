@@ -14,12 +14,10 @@ Future<void> main() async {
   Hive.init((await getApplicationDocumentsDirectory()).path);
   await Hive.openBox(Constants.boxName);
 
-  SystemChrome.setPreferredOrientations(
-    [
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ],
-  );
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(const MyApp());
 }

@@ -34,8 +34,9 @@ class AppSearchField extends StatelessWidget {
             borderSide: const BorderSide(color: Colors.blueAccent),
           ),
           hintStyle: TextStyle(
-            color: Colors.grey,fontWeight: FontWeight.normal
-          )
+            color: Colors.grey,
+            fontWeight: FontWeight.normal,
+          ),
         ),
         style: const TextStyle(fontSize: 16),
       ),

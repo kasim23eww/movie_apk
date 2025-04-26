@@ -1,12 +1,11 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:movie_app/route/app_router.dart';
 import 'package:movie_app/screen/home/model/genre/genre_model.dart';
 import 'package:movie_app/utils/app_methods.dart';
-import 'package:movie_app/utils/constants.dart';
 import 'package:movie_app/utils/enum/tabs.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -24,138 +23,163 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       body: SafeArea(
         bottom: false,
-        minimum: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-          child: BlocConsumer<HomeBloc, HomeState>(
-            builder: (context, state) {
-              return Skeletonizer(
-                enabled: state.loadStatus == LoadStatus.loading ,
-                child: Column(
-                  spacing: 15,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 20,
-                        children: List.generate(
-                            Tabs.values.length,
-                            (i){
-                              return Expanded(
-                                child: InkWell(
-                                  highlightColor: Colors.transparent,
-                                  splashColor: Colors.transparent,
-                                  onTap: (){
-                                    if(state.tab != Tabs.values[i]){
-                                      context.read<HomeBloc>().add(OnTabSwitch(tabs: Tabs.values[i], isNew: true));
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: 4),
-                                    decoration: BoxDecoration(
-                                     color: state.tab == Tabs.values[i] ? Colors.amber : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: state.tab != Tabs.values[i] ?  Border.all(
-                                        color: Colors.amber
-                                      ) : null
-                                    ),
-                                    child: Text(Tabs.values[i].value,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: state.tab == Tabs.values[i] ? Colors.black : Colors.white
-                                    ),
-                                    textAlign: TextAlign.center,),
+        minimum: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: BlocConsumer<HomeBloc, HomeState>(
+          builder: (context, state) {
+            return Skeletonizer(
+              enabled: state.loadStatus == LoadStatus.loading,
+              child: Column(
+                spacing: 15,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20.0, bottom: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 20,
+                      children: List.generate(Tabs.values.length, (i) {
+                        return Expanded(
+                          child: InkWell(
+                            highlightColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            onTap: () {
+                              if (state.tab != Tabs.values[i]) {
+                                context.read<HomeBloc>().add(
+                                  OnTabSwitch(
+                                    tabs: Tabs.values[i],
+                                    isNew: true,
                                   ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color:
+                                    state.tab == Tabs.values[i]
+                                        ? Colors.amber
+                                        : Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                                border:
+                                    state.tab != Tabs.values[i]
+                                        ? Border.all(color: Colors.amber)
+                                        : null,
+                              ),
+                              child: Text(
+                                Tabs.values[i].value,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w300,
+                                  color:
+                                      state.tab == Tabs.values[i]
+                                          ? Colors.black
+                                          : Colors.white,
                                 ),
-                              );
-                            }
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+
+                  Row(
+                    spacing: 10,
+                    children: [
+                      Expanded(
+                        child: AppSearchField(
+                          controller: state.searchController!,
+                          hintText: 'Search movies bt title',
+                          onChanged: (value) {
+                            context.read<HomeBloc>().add(
+                              OnSearchMovie(movie: value),
+                            );
+                          },
                         ),
                       ),
-                    ),
+                      InkWell(
+                        onTap: () {
+                          context.read<HomeBloc>().add(const SwitchList());
+                        },
+                        child: Icon(
+                          !state.isGrid ? Icons.list : Icons.grid_on,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
 
-                    Row(
-                      spacing: 10,
-                      children: [
-                        Expanded(
-                          child: AppSearchField(
-                            controller: state.searchController!,
-                            hintText: 'Search movies bt title',
-                            onChanged: (value) {
-                              context.read<HomeBloc>().add(OnSearchMovie(movie: value));
-                            },
+                  state.moviesList.isNotEmpty
+                      ? Expanded(
+                        child: state.isGrid ? listView(state) : gridView(state),
+                      )
+                      : Expanded(
+                        child: Center(
+                          child: Text(
+                            "No result found",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w300,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        InkWell(
-                            onTap: (){
-                              context.read<HomeBloc>().add(const SwitchList());
-                            },
-                            child: Icon(!state.isGrid ? Icons.list : Icons.grid_on,
-                            color: Colors.white,)
-                        ),
-                      ],
-                    ),
-
-                   state.moviesList.isNotEmpty ? Expanded(
-                      child: state.isGrid ?  listView(state) :
-                      gridView(state),
-                    ) :
-                   Expanded(
-                     child: Center(
-                       child: Text("No result found",
-                         style: TextStyle(fontWeight: FontWeight.w300,
-                             fontSize: 18,
-                             color: Colors.white),
-                       ),
-                     ),
-                   ),
-
-                  ],
+                      ),
+                ],
+              ),
+            );
+          },
+          listener: (BuildContext context, HomeState state) {
+            if (state.failureResponse != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.failureResponse!.message),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
                 ),
               );
-            },
-            listener: (BuildContext context, HomeState state) {
-              if(state.failureResponse!=null){
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.failureResponse!.message),
-                    backgroundColor: Colors.red,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-                context.read<HomeBloc>().add(Reset());
-              }
-            },
-          )
+              context.read<HomeBloc>().add(Reset());
+            }
+          },
+        ),
       ),
       floatingActionButton: BlocBuilder<HomeBloc, HomeState>(
-  builder: (context, state) {
-    return Visibility(
-      visible: state.genreList.isNotEmpty,
-      child: FloatingActionButton(
-            onPressed: (){
-              showGenreBottomSheet(
-                context: context,
-                genres: state.genreList,
-                selectedGenres: state.genreList.where((e)=>e.isSelected ?? false).toList(),
-                onGenreTap: (selected) {
-                  context.read<HomeBloc>().add(GenreTap(index: state.genreList.indexWhere((t)=>t.id == selected.id)));
-                },
-                onApplyFilter: () {
-                  context.read<HomeBloc>().add(ApplyFilter());
-                },
-                onClearFilter: () {
-                  context.read<HomeBloc>().add(ClearFilter());
-                },
-              );
-            },
-             backgroundColor: Colors.amber,
-          shape: const CircleBorder(),
-                child: Icon(Icons.filter_alt,color: Colors.black,),
-        ),
-    );
-  },
-),
+        builder: (context, state) {
+          return Visibility(
+            visible: state.genreList.isNotEmpty,
+            child: FloatingActionButton(
+              onPressed: () {
+                showGenreBottomSheet(
+                  context: context,
+                  genres: state.genreList,
+                  selectedGenres:
+                      state.genreList
+                          .where((e) => e.isSelected ?? false)
+                          .toList(),
+                  onGenreTap: (selected) {
+                    context.read<HomeBloc>().add(
+                      GenreTap(
+                        index: state.genreList.indexWhere(
+                          (t) => t.id == selected.id,
+                        ),
+                      ),
+                    );
+                  },
+                  onApplyFilter: () {
+                    context.read<HomeBloc>().add(ApplyFilter());
+                  },
+                  onClearFilter: () {
+                    context.read<HomeBloc>().add(ClearFilter());
+                  },
+                );
+              },
+              backgroundColor: Colors.amber,
+              shape: const CircleBorder(),
+              child: Icon(Icons.filter_alt, color: Colors.black),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -163,9 +187,10 @@ class HomeScreen extends StatelessWidget {
     return GridView.builder(
       controller: state.scrollController,
       padding: const EdgeInsets.only(bottom: 10),
-      itemCount: state.loadStatus == LoadStatus.loadingMore
-          ? state.moviesList.length + 1
-          : state.moviesList.length,
+      itemCount:
+          state.loadStatus == LoadStatus.loadingMore
+              ? state.moviesList.length + 1
+              : state.moviesList.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 15,
@@ -180,83 +205,105 @@ class HomeScreen extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: Center(
-                child: CircularProgressIndicator(
-                  color: Colors.amber,
-                ),
+                child: CircularProgressIndicator(color: Colors.amber),
               ),
             ),
           );
         } else {
-          return Stack(
-            children: [
-              AppCachedImage(
-                imageUrl: AppMethods.getImageUrl(state.moviesList[index].posterPath),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
+          return InkWell(
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                Routes.detail,
+                arguments: {'args': state.moviesList[index]},
+              );
+            },
+            child: Stack(
+              children: [
+                AppCachedImage(
+                  imageUrl: AppMethods.getImageUrl(
+                    state.moviesList[index].posterPath,
                   ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.black.withOpacity(0.5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            state.moviesList[index].title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        color: Colors.black.withOpacity(0.5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              state.moviesList[index].title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  DateFormat('MMMM d, y').format(state.moviesList[index].releaseDate),
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  const Icon(Icons.star, color: Colors.amber, size: 14),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    state.moviesList[index].voteCount.toString(),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            const SizedBox(height: 2),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    DateFormat('MMMM d, y').format(
+                                      state.moviesList[index].releaseDate,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
+                                ),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      state.moviesList[index].voteCount
+                                          .toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
       },
     );
   }
-
-
 
   Widget listView(HomeState state) {
     return ListView.separated(
@@ -264,83 +311,103 @@ class HomeScreen extends StatelessWidget {
       shrinkWrap: true,
       controller: state.scrollController,
       padding: const EdgeInsets.only(bottom: 10),
-      itemCount: state.loadStatus == LoadStatus.loadingMore
-          ? state.moviesList.length + 1
-          : state.moviesList.length,
+      itemCount:
+          state.loadStatus == LoadStatus.loadingMore
+              ? state.moviesList.length + 1
+              : state.moviesList.length,
 
       itemBuilder: (BuildContext context, int index) {
         if (state.loadStatus == LoadStatus.loadingMore &&
             index == state.moviesList.length) {
           return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.amber,
-              ));
-        } else{
-          return Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15)
-            ),
-            child: Row(
-              spacing: 10,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppCachedImage(
-                  imageUrl: AppMethods.getImageUrl(state.moviesList[index].posterPath),
-                  height: 140,
-                  width: 100,
-                  fit: BoxFit.cover,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                Expanded(
-                  child: Column(
-                    spacing: 10,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(state.moviesList[index].title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: Colors.white),),
-                          ),
-                          Text("${state.moviesList[index].voteAverage}",
-                            style: TextStyle(fontWeight: FontWeight.w300,
-                                fontSize: 10,
-                                color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      Text(state.moviesList[index].overview,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                        maxLines: 4,),
-
-                      Text(DateFormat('MMMM d, y').format(
-                          state.moviesList[index].releaseDate),
-                        style: TextStyle(color: Colors.white, fontSize: 12),),
-
-
-                    ],
+            child: CircularProgressIndicator(color: Colors.amber),
+          );
+        } else {
+          return InkWell(
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                Routes.detail,
+                arguments: {'args': state.moviesList[index]},
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                spacing: 10,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppCachedImage(
+                    imageUrl: AppMethods.getImageUrl(
+                      state.moviesList[index].posterPath,
+                    ),
+                    height: 140,
+                    width: 100,
+                    fit: BoxFit.cover,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                )
-              ],
+                  Expanded(
+                    child: Column(
+                      spacing: 10,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                state.moviesList[index].title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              "${state.moviesList[index].voteAverage}",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w300,
+                                fontSize: 10,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          state.moviesList[index].overview,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          maxLines: 4,
+                        ),
+
+                        Text(
+                          DateFormat(
+                            'MMMM d, y',
+                          ).format(state.moviesList[index].releaseDate),
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
-
       },
       separatorBuilder: (BuildContext context, int index) {
-        return SizedBox(height: 15,);
+        return SizedBox(height: 15);
       },
-
     );
   }
 }
-
 
 void showGenreBottomSheet({
   required BuildContext context,
@@ -367,7 +434,11 @@ void showGenreBottomSheet({
               children: [
                 const Text(
                   "Select Genres",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Flexible(
@@ -377,38 +448,51 @@ void showGenreBottomSheet({
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 15,
-                      children: genres.map((genre) {
-                        final isSelected = tempSelected.contains(genre);
-                        return InkWell(
-                          highlightColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          onTap: (){
-                            onGenreTap.call(genre);
-                            if(tempSelected.contains(genre)){
-                              tempSelected.remove(genre);
-                            }else{
-                              tempSelected.add(genre);
-                            }
-                            setState((){});
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 15),
-                            decoration: BoxDecoration(
-                                color: isSelected ? Colors.amber : Colors.transparent,
-                                borderRadius: BorderRadius.circular(20),
-                                border: !isSelected ?  Border.all(
-                                    color: Colors.amber
-                                ) : null
-                            ),
-                            child: Text(genre.name,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color:isSelected ? Colors.black : Colors.white
+                      children:
+                          genres.map((genre) {
+                            final isSelected = tempSelected.contains(genre);
+                            return InkWell(
+                              highlightColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              onTap: () {
+                                onGenreTap.call(genre);
+                                if (tempSelected.contains(genre)) {
+                                  tempSelected.remove(genre);
+                                } else {
+                                  tempSelected.add(genre);
+                                }
+                                setState(() {});
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 15,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? Colors.amber
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border:
+                                      !isSelected
+                                          ? Border.all(color: Colors.amber)
+                                          : null,
+                                ),
+                                child: Text(
+                                  genre.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        isSelected
+                                            ? Colors.black
+                                            : Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,),
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          }).toList(),
                     ),
                   ),
                 ),
@@ -419,11 +503,16 @@ void showGenreBottomSheet({
                     Expanded(
                       child: ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.transparent), // optional: white background
-                          foregroundColor: WidgetStateProperty.all(Colors.transparent), // optional: black text
+                          backgroundColor: WidgetStateProperty.all(
+                            Colors.transparent,
+                          ), // optional: white background
+                          foregroundColor: WidgetStateProperty.all(
+                            Colors.transparent,
+                          ), // optional: black text
                           shape: WidgetStateProperty.all(
                             RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12), // optional: rounded corners
+                              borderRadius: BorderRadius.circular(12),
+                              // optional: rounded corners
                               side: const BorderSide(
                                 color: Colors.amber, // border color
                                 width: 1.5, // border thickness
@@ -435,20 +524,26 @@ void showGenreBottomSheet({
                           onClearFilter.call();
                           Navigator.pop(context);
                         },
-                        child:  Text("Clear",
+                        child: Text(
+                          "Clear",
                           style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold
-                          ),),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                     Expanded(
                       child: ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.amber),
+                          backgroundColor: WidgetStateProperty.all(
+                            Colors.amber,
+                          ),
                           shape: WidgetStateProperty.all(
                             RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12), // optional: rounded corners
+                              borderRadius: BorderRadius.circular(
+                                12,
+                              ), // optional: rounded corners
                             ),
                           ),
                         ),
@@ -456,14 +551,17 @@ void showGenreBottomSheet({
                           onApplyFilter.call();
                           Navigator.pop(context);
                         },
-                        child:  Text("Apply",style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold
-                        ),),
+                        child: Text(
+                          "Apply",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           );

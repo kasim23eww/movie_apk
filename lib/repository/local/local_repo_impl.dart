@@ -9,50 +9,50 @@ import 'package:movie_app/utils/constants.dart';
 import 'local_repo.dart';
 
 @LazySingleton(as: LocalRepo)
-
-class LocalRepoImpl extends LocalRepo{
+class LocalRepoImpl extends LocalRepo {
   @override
-  Future<List<GenreModel>> getGenre() async{
+  Future<List<GenreModel>> getGenre() async {
     List<GenreModel> list = [];
-    String data =  await getData(Constants.saveGenre) ?? "";
+    String data = await getData(Constants.saveGenre) ?? "";
 
-    if(data.isNotEmpty){
+    if (data.isNotEmpty) {
       List saved = jsonDecode(data);
 
-      for(int i = 0; i<saved.length;i++){
+      for (int i = 0; i < saved.length; i++) {
         list.add(GenreModel.fromJson(saved[i]));
       }
-
     }
 
     return list;
   }
 
   @override
-  Future<List<MovieModel>> getMovies({required String type}) async{
+  Future<List<MovieModel>> getMovies({required String type}) async {
     List<MovieModel> list = [];
 
-    String data =  await getData(type) ?? "";
+    String data = await getData(type) ?? "";
 
-    if(data.isNotEmpty){
+    if (data.isNotEmpty) {
       List saved = jsonDecode(data);
 
-      for(int i = 0; i<saved.length;i++){
+      for (int i = 0; i < saved.length; i++) {
         list.add(MovieModel.fromJson(saved[i]));
       }
-
     }
     return list;
   }
 
   @override
   Future<void> setGenre({required List<GenreModel> list}) async {
-    await setData(Constants.saveGenre,jsonEncode(list.toList()));
+    await setData(Constants.saveGenre, jsonEncode(list.toList()));
   }
 
   @override
-  Future<void> setMovies({required List<MovieModel> list , required String type}) async{
-    await setData(type,jsonEncode(list.toList())) ;
+  Future<void> setMovies({
+    required List<MovieModel> list,
+    required String type,
+  }) async {
+    await setData(type, jsonEncode(list.toList()));
   }
 
   @override

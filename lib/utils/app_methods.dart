@@ -1,6 +1,4 @@
-
 import 'package:connectivity_plus/connectivity_plus.dart';
-
 
 class AppMethods {
   static Future<bool> checkConnectivity() async {

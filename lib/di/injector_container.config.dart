@@ -17,7 +17,6 @@ import 'package:movie_app/repository/local/local_repo.dart' as _i4;
 import 'package:movie_app/repository/local/local_repo_impl.dart' as _i438;
 import 'package:movie_app/repository/remote/remote_repo.dart' as _i435;
 import 'package:movie_app/repository/remote/remote_repo_impl.dart' as _i265;
-import 'package:movie_app/screen/detail/bloc/detail_bloc.dart' as _i761;
 import 'package:movie_app/screen/home/bloc/home_bloc.dart' as _i130;
 
 // initializes the registration of main-scope dependencies inside of GetIt
@@ -28,7 +27,6 @@ _i174.GetIt init(
 }) {
   final gh = _i526.GetItHelper(getIt, environment, environmentFilter);
   gh.factory<_i257.DioClient>(() => _i257.DioClient());
-  gh.factory<_i761.DetailBloc>(() => _i761.DetailBloc());
   gh.singleton<_i317.ApiInterceptors>(() => _i317.ApiInterceptors());
   gh.lazySingleton<_i435.RemoteRepo>(
     () => _i265.RemoteRepoImpl(dioClient: gh<_i257.DioClient>()),

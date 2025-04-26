@@ -38,7 +38,7 @@ final class HomeState extends Equatable {
     ScrollController? scrollController,
     int? page,
     int? totalPage,
-    FailureResponse? failureResponse
+    FailureResponse? failureResponse,
   }) {
     return HomeState(
       moviesList: moviesList ?? this.moviesList,
